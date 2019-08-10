@@ -1,0 +1,136 @@
+#!/usr/bin/env python
+
+###  example agent output: #################################################################
+#
+# <<<backuppc_report>>>
+# 2019-08-10 19:44       21 host(s) configured (0 disabled)
+# 
+# *WARNING* Some backups with ERRORs!
+#
+# *WARNING* There are in-progress backups!
+# 
+# 
+# URL: https://backuppc_host.my.domain/backuppc/BackupPC_Admin
+# 
+# warn backup host    date/time           size      durat.| xfer Share File tar |  age
+# flag number name                        (MB)  lvl  (min)| Err  Err   Err  Err | (days)
+# ----------------------------------------------------------------------------------------
+#      [ 171] host01   2019-07-11 08:15   3483   0      2 |    0     0    0   0 |     30
+#      [ 172] host01   2019-07-12 07:50   3488   1     33 |    0     0    0   0 |     29
+#      [ 173] host01   2019-07-13 07:15   3492   1      1 |    0     0    0   0 |     28
+#      [ 174] host01   2019-07-14 06:45   3483   1      1 |    0     0    0   0 |     27
+#      [ 175] host01   2019-07-15 06:15   3487   1      0 |    0     0    0   0 |     26
+#      [ 176] host01   2019-07-16 05:45   3488   1      0 |    0     0    0   0 |     25
+#      [ 177] host01   2019-07-17 05:15   3479   1      0 |    0     0    0   0 |     24
+#      [ 178] host01   2019-07-18 04:45   3483   1      0 |    0     0    0   0 |     23
+#      [ 179] host01   2019-07-19 04:15   3488   1      0 |    0     0    0   0 |     22
+#      [ 180] host01   2019-07-20 03:45   3478   1      0 |    0     0    0   0 |     21
+#      [ 181] host01   2019-07-21 03:15   3482   1      1 |    0     0    0   0 |     20
+#      [ 182] host01   2019-07-22 02:45   3487   1      0 |    0     0    0   0 |     19
+#      [ 183] host01   2019-07-23 02:15   3484   1      0 |    0     0    0   0 |     18
+#      [ 184] host01   2019-07-24 01:45   3483   1      0 |    0     0    0   0 |     17
+#      [ 185] host01   2019-07-25 01:08   3481   1      1 |    0     0    0   0 |     16
+#      [ 186] host01   2019-07-26 01:07   3486   1      2 |    0     0    0   0 |     15
+#      [ 187] host01   2019-07-27 01:19   3501   0     16 |    0     0    0   0 |     14
+#      [ 188] host01   2019-07-28 01:02   3506   1      1 |    0     0    0   0 |     13
+#      [ 189] host01   2019-07-29 01:01   3510   1      1 |    0     0    0   0 |     12
+#      [ 190] host01   2019-07-30 01:00   3502   1      0 |    0     0    0   0 |     11
+#      [ 191] host01   2019-07-31 01:00   3501   1      1 |    0     0    0   0 |     10
+#      [ 192] host01   2019-08-01 01:01   3506   1      1 |    0     0    0   0 |      9
+#      [ 193] host01   2019-08-02 01:00   3511   1      1 |    0     0    0   0 |      8
+#      [ 194] host01   2019-08-03 01:00   3502   1      0 |    0     0    0   0 |      7
+#      [ 195] host01   2019-08-04 01:01   3507   1      2 |    0     0    0   0 |      6
+#      [ 196] host01   2019-08-05 01:00   3511   1      1 |    0     0    0   0 |      5
+#      [ 197] host01   2019-08-06 01:00   3502   1      0 |    0     0    0   0 |      4
+#      [ 198] host01   2019-08-07 01:00   3507   1      1 |    0     0    0   0 |      3
+#      [ 199] host01   2019-08-08 01:01   3512   1      1 |    0     0    0   0 |      2
+#      [ 200] host01   2019-08-09 01:00   3503   1      0 |    0     0    0   0 |      1
+#      [ 201] host01   2019-08-10 01:02   3508   1      1 |    0     0    0   0 |      0
+#      [ 176] host02   2019-07-10 07:45   4795   0      4 |    0     0    0   0 |     31
+#      [ 178] host02   2019-07-12 06:45   4883   1      2 |    0     0    0   0 |     29
+#      [ 179] host02   2019-07-13 06:15   4904   1      2 |    0     0    0   0 |     28
+#    E [ 106] host03   2019-07-11 06:16   7844   0     17 |    3     0    0   3 |     30
+#    E [ 107] host03   2019-07-12 05:47   7854   1      7 |    3     0    0   3 |     29
+#    E [ 108] host03   2019-07-13 05:16   8753   1     26 |    5     0    0   5 |     28
+#    E [ 109] host03   2019-07-14 04:50   8761   1     22 |    4     0    0   4 |     27
+#    E [ 110] host03   2019-07-15 04:15   8763   1      7 |    3     0    0   3 |     26
+#    E [ 111] host03   2019-07-16 03:46   8748   1      6 |    4     0    0   4 |     25
+#      [ 112] host03   2019-07-17 03:16   8761   1      6 |    0     0    0   0 |     24
+#      [ 113] host03   2019-07-18 02:46   8758   1      5 |    0     0    0   0 |     23
+#      [ 114] host03   2019-07-19 02:16   8753   1      5 |    0     0    0   0 |     22
+#    E [ 115] host03   2019-07-20 01:46   8750   1      6 |    4     0    0   4 |     21
+#    E [ 116] host03   2019-07-21 01:16   8750   1      6 |    3     0    0   3 |     20
+#      [ 117] host03   2019-07-22 01:01   8936   1      5 |    0     0    0   0 |     19
+#    E [ 118] host03   2019-07-23 01:01   8753   1      7 |    3     0    0   3 |     18
+#    E [ 119] host03   2019-07-24 01:00   8842   1      7 |    3     0    0   3 |     17 
+#    E [ 120] host03   2019-08-10 18:00  86806   1      8 |    3     0    0   3 |      0
+#   PD [ 121] host03   2019-08-10 20:15          1        |                     |      0
+
+# 
+#
+#
+# run check from cli 
+# cmk --checks=backuppc_report -I <hostname>
+# cmk --checks=backuppc_report -nvp <hostname>
+#
+############################################################################################
+
+import re
+
+
+############################################################################################
+# PARSER FUNCTION 
+# generate for each backup host found an instance 
+# expect  output from agent as sorted table
+############################################################################################
+def parse_backuppc_report(info):
+    skip_header = True
+
+    # first line is the overall state
+    print info[0]
+
+
+    for line in info:
+        # skip until matching the "------" line indicating start of report table 
+        if re.match('^------', line[0]) and skip_header:
+            skip_header = False
+        elif skip_header:
+            next
+        # process backup report table and get hostname for instance
+        else:
+            get_host_instance(line)
+            
+def get_host_instance(line):
+    # count elements of line 
+    print len(line)
+    
+    print "line[0]:" + line[0]
+    print "line[2]:" + line[2] 
+
+
+
+
+############################################################################################
+# INVENTORY FUNCTION 
+############################################################################################
+def inventory_backuppc_report(parsed):
+   print "inventory"
+   print parsed
+   return [] # return empty list: nothing found
+
+############################################################################################
+# CHECK FUNCTION
+############################################################################################
+def check_backuppc_report(item, params, info):
+   print "check function"
+   return 3, "Sorry - not implemented"
+
+
+
+# define the backuppc-report check
+check_info["backuppc_report"] = {
+    'parse_function':            parse_backuppc_report,
+    'check_function':            check_backuppc_report,
+    'inventory_function':        inventory_backuppc_report,
+    'service_description':       'BackupPC Report %s' 
+}
