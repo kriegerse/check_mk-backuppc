@@ -10,7 +10,7 @@
 
 report_util=$(which BackupPC_report)
 
-echo '<<<backuppc-report>>>'
+echo '<<<backuppc_report>>>'
 
 if [[ ${report_util} == "" ]]; then
   echo "ERROR: BackupPC_report util not found! Please install it, sources are available on https://github.com/moisseev/BackupPC_report" 
