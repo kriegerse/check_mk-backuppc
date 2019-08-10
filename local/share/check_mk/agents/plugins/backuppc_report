@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+#################################################################################
+# Sebastian Krieger <s_krieger@web.de> - 2019
+#
+# backuppc_report check_mk agent plugin collects information with the
+# BackupPC_Report util available on https://github.com/moisseev/BackupPC_report 
+# 
+#################################################################################
+
+report_util=$(which BackupPC_report)
+
+echo '<<<backuppc-report>>>'
+
+if [[ ${report_util} == "" ]]; then
+  echo "ERROR: BackupPC_report util not found! Please install it, sources are available on https://github.com/moisseev/BackupPC_report" 
+  exit 0
+fi
+
+$report_util -a
+
