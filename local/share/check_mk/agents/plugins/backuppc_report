@@ -13,9 +13,9 @@ report_util=$(which BackupPC_report)
 echo '<<<backuppc_report>>>'
 
 if [[ ${report_util} == "" ]]; then
-  echo "ERROR: BackupPC_report util not found! Please install it, sources are available on https://github.com/moisseev/BackupPC_report" 
+  echo "ERROR: BackupPC_report util not found! Please install it, sources are available on https://github.com/moisseev/BackupPC_report. Minimum required version >=0.0.7" 
   exit 0
 fi
 
-$report_util -a
+$report_util -a -f csv
 

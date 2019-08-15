@@ -79,58 +79,46 @@ import re
 
 
 ############################################################################################
-# PARSER FUNCTION 
-# generate for each backup host found an instance 
-# expect  output from agent as sorted table
-############################################################################################
-def parse_backuppc_report(info):
-    skip_header = True
-
-    # first line is the overall state
-    print info[0]
-
-
-    for line in info:
-        # skip until matching the "------" line indicating start of report table 
-        if re.match('^------', line[0]) and skip_header:
-            skip_header = False
-        elif skip_header:
-            next
-        # process backup report table and get hostname for instance
-        else:
-            get_host_instance(line)
-            
-def get_host_instance(line):
-    # count elements of line 
-    print len(line)
-    
-    print "line[0]:" + line[0]
-    print "line[2]:" + line[2] 
-
-
-
-
-############################################################################################
 # INVENTORY FUNCTION 
 ############################################################################################
-def inventory_backuppc_report(parsed):
-   print "inventory"
-   print parsed
-   return [] # return empty list: nothing found
+def inventory_backuppc_report(info):
+    last_host=str()
+    current_host=str()
+    for line in info:
+        # skip header line
+        if re.match('.*backup_number.*',line[0]):
+            continue
+
+        # if a new host is detected yield it
+        current_host=str(line[0]).split(',')[2]
+        if current_host != last_host:
+            last_host=current_host
+            yield current_host, None
+
 
 ############################################################################################
 # CHECK FUNCTION
 ############################################################################################
 def check_backuppc_report(item, params, info):
-   print "check function"
-   return 3, "Sorry - not implemented"
+    current_host=str()
+
+    for line in info:
+        # skip header line
+        if re.match('.*backup_number.*',line[0]):
+            continue
+
+        print ' '.join(line)
+    #print "item: " + str(item)
+    #print "parems: " + str(params)
+    #print "info:" + str(info)
+    return 3, "Sorry - not implemented"
 
 
-
-# define the backuppc-report check
+############################################################################################
+# DEFINE CHECK
+############################################################################################ 
 check_info["backuppc_report"] = {
-    'parse_function':            parse_backuppc_report,
     'check_function':            check_backuppc_report,
     'inventory_function':        inventory_backuppc_report,
-    'service_description':       'BackupPC Report %s' 
+    'service_description':       'BackupPC: %s' 
 }
