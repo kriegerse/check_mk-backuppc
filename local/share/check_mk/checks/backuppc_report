@@ -28,8 +28,6 @@
 #
 ############################################################################################
 
-import re
-
 
 ############################################################################################
 # INVENTORY FUNCTION 
@@ -39,7 +37,7 @@ def inventory_backuppc_report(info):
     current_host=str()
     for line in info:
         # skip header line
-        if re.match('.*backup_number.*',line[0]):
+        if 'warn_flags,backup_number,host_name' in line[0]:
             continue
 
         # if a new host is detected yield it
@@ -48,23 +46,69 @@ def inventory_backuppc_report(info):
             last_host=current_host
             yield current_host, None
 
+    yield '- Summary', None
+
+
+
 
 ############################################################################################
 # CHECK FUNCTION
 ############################################################################################
 def check_backuppc_report(item, params, info):
-    current_host=str()
+    # use check_backuppc_summary function for summary report
+    if item == '- Summary':
+        return check_backuppc_summary(item, params, info)
 
+    # handle backup hosts
+    current_host=str()
     for line in info:
         # skip header line
-        if re.match('.*backup_number.*',line[0]):
+        if 'warn_flags,backup_number,host_name' in line[0]:
             continue
-
-        print ' '.join(line)
+    
+        #print ' '.join(line)
     #print "item: " + str(item)
     #print "parems: " + str(params)
     #print "info:" + str(info)
     return 3, "Sorry - not implemented"
+
+
+def check_backuppc_summary(item, params, info):
+    host_count = 0
+    host_progress_count = 0
+    host_partial_count = 0
+    host_error_count = 0
+    host_toold_count = 0
+    host_disabled_count = 0
+    host_totalbkp_count = len(info) - 1 # ignore header line
+
+    current_host=str()
+    for line in info:
+        if current_host != str(line[0]).split(',')[2]:
+            current_host = str(line[0]).split(',')[2]
+            host_count += 1
+
+        warn_flag = str(line[0]).split(',')[0]
+        if '*' in warn_flag:
+            host_progress_count += 1
+        if 'P' in warn_flag:
+            host_partial_count += 1
+        if 'E' in warn_flag:
+            host_error_count += 1
+        if 'O' in warn_flag:
+            host_toold_count += 1
+        if 'D' in warn_flag:
+            host_disabled_count += 1
+
+
+    print "host_count: " + str(host_count)
+    print "host_progress_count: " + str(host_progress_count)
+    print "host_partial_count: " + str(host_partial_count)
+    print "host_error_count: " + str(host_error_count)
+    print "host_toold_count: " + str(host_toold_count)
+    print "host_disabled_count: " + str(host_disabled_count)
+
+    return 3, "Sorry - not implemented summary"
 
 
 ############################################################################################
@@ -73,5 +117,6 @@ def check_backuppc_report(item, params, info):
 check_info["backuppc_report"] = {
     'check_function':            check_backuppc_report,
     'inventory_function':        inventory_backuppc_report,
-    'service_description':       'BackupPC: %s' 
+    'service_description':       'BackupPC %s' 
 }
+
