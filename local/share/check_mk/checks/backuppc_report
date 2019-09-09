@@ -105,7 +105,7 @@ def check_backuppc_summary(item, params, info):
     total_error_count = 0
     total_tooold_count = 0
     total_disabled_count = 0
-    total_backupc_count = len(info) - 1 # ignore header line
+    total_backup_count = len(info) - 1 # ignore header line
 
     current_host=str()
     for line in info:
@@ -130,28 +130,33 @@ def check_backuppc_summary(item, params, info):
     perfdata.append(('total_host_count', int(total_host_count), None, None))
 
     # Hosts out of data
+    warn, crit = params.get('total_tooold_count')
     output.append("Hosts out of date: " + str(total_tooold_count))
-    perfdata.append(('total_tooold_count', int(total_tooold_count), None, None))
+    perfdata.append(('total_tooold_count', int(total_tooold_count), warn, crit))
 
     # Disabled Hosts
+    warn, crit = params.get('total_disabled_count')
     output.append("Hosts disabled: " + str(total_disabled_count))
-    perfdata.append(('total_disabled_count', int(total_disabled_count), None, None))
+    perfdata.append(('total_disabled_count', int(total_disabled_count), warn, crit))
 
     # Total Backups
-    output.append("Backups total: " + str(total_backupc_count))
-    perfdata.append(('total_backupc_count', int(total_backupc_count), None, None))
+    output.append("Backups total: " + str(total_backup_count))
+    perfdata.append(('total_backup_count', int(total_backup_count), None, None))
 
     # Backup in Progress
+    warn, crit = params.get('total_progress_count')
     output.append("Backups in progress: " + str(total_progress_count))
-    perfdata.append(('total_progress_count', int(total_progress_count), None, None))
+    perfdata.append(('total_progress_count', int(total_progress_count), warn, crit))
 
     # Backup in partial state
+    warn, crit = params.get('total_partial_count')
     output.append("Backups partial: " + str(total_partial_count))
-    perfdata.append(('total_partial_count', int(total_partial_count), None, None))
+    perfdata.append(('total_partial_count', int(total_partial_count), warn, crit))
 
     # Backups with errors
+    warn, crit = params.get('total_error_count')
     output.append("Backups with errors: " + str(total_error_count))
-    perfdata.append(('total_error_count', int(total_error_count), None, None))
+    perfdata.append(('total_error_count', int(total_error_count), warn, crit))
 
     return ok_code, ', '.join(output), perfdata
 
