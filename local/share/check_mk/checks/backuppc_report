@@ -40,6 +40,14 @@ def set_ok_code(current_ok_code=int(), new_ok_code=int()):
 
     return ok_code
 
+# check_threshold 
+# if threshold is set to "-1" and return None else return value 
+def check_threshold(threshold=int()):
+    if threshold == -1:
+        return None
+    else:
+        return threshold
+
 
 ############################################################################################
 # INVENTORY FUNCTIONS
@@ -68,11 +76,11 @@ def inventory_backuppc_summary(info):
 ############################################################################################
 
 factory_settings['default_levels_backuppc_summary'] = {
-    'total_tooold_count': (1, 2),
-    'total_disabled_count': (1, 1),
-    'total_progress_count': (4, 8),
-    'total_partial_count': (2, 3),
-    'total_error_count': (50, 60)
+    'hosts_overage': (1, 2),
+    'hosts_disabled': (1, 1),
+    'hosts_progress': (4, 8),
+    'bkp_partial': (2, 3),
+    'bkp_errors': (50, 60)
 }
 
 ############################################################################################
@@ -99,64 +107,87 @@ def check_backuppc_summary(item, params, info):
     output = list()
     perfdata = list()
 
-    total_host_count = 0
-    total_progress_count = 0
-    total_partial_count = 0
-    total_error_count = 0
-    total_tooold_count = 0
-    total_disabled_count = 0
-    total_backup_count = len(info) - 1 # ignore header line
+    hosts = 0
+    hosts_disabled = 0
+    hosts_overage = 0
+    hosts_progress = 0
+    bkp_count = len(info) - 1 # ignore header line
+    bkp_partial = 0
+    bkp_errors = 0
 
     current_host=str()
     for line in info:
         if current_host != str(line[0]).split(',')[2]:
             current_host = str(line[0]).split(',')[2]
-            total_host_count += 1
+            hosts += 1
 
         warn_flag = str(line[0]).split(',')[0]
         if '*' in warn_flag:
-            total_progress_count += 1
+            hosts_progress += 1
         if 'P' in warn_flag:
-            total_partial_count += 1
+            bkp_partial += 1
         if 'E' in warn_flag:
-            total_error_count += 1
+            bkp_errors += 1
         if 'O' in warn_flag:
-            total_tooold_count += 1
+            hosts_overage += 1
         if 'D' in warn_flag:
-            total_disabled_count += 1
+            hosts_disabled += 1
 
     # Number of hosts
-    output.append("Hosts: " + str(total_host_count))
-    perfdata.append(('total_host_count', int(total_host_count), None, None))
+    output.append("Hosts: " + str(hosts))
+    perfdata.append(('hosts', int(hosts), None, None))
 
-    # Hosts out of data
-    warn, crit = params.get('total_tooold_count')
-    output.append("Hosts out of date: " + str(total_tooold_count))
-    perfdata.append(('total_tooold_count', int(total_tooold_count), warn, crit))
+    # Hosts out of date
+    warn, crit = params.get('hosts_overage')
+    if float(hosts_overage) >= float(warn) and float(hosts_overage) <= float(crit) and not float(warn) == -1 and not float(crit) == -1:
+        ok_code = set_ok_code(ok_code, 1)
+        output.append("Overaged: " + str(hosts_overage) 
+                + " warn at: " + str(warn) + "(!)")
+    elif float(hosts_overage) >= float(crit) and not float(crit) == -1:
+        ok_code = set_ok_code(ok_code, 2)
+        output.append("Overaged: " + str(hosts_overage)
+                + " crit at: " + str(crit) + "(!!)")
+    else:
+        output.append("Overaged: " + str(hosts_overage))
+
+    perfdata.append(('hosts_overage', int(hosts_overage), check_threshold(warn), check_threshold(crit) ))
 
     # Disabled Hosts
-    warn, crit = params.get('total_disabled_count')
-    output.append("Hosts disabled: " + str(total_disabled_count))
-    perfdata.append(('total_disabled_count', int(total_disabled_count), warn, crit))
+    warn, crit = params.get('hosts_disabled')
+    if float(hosts_disabled) >= float(warn) and float(hosts_disabled) <= float(crit) and not float(warn) == -1 and not float(crit) == -1:
+        ok_code = set_ok_code(ok_code, 1)
+        output.append("Disabled: " + str(hosts_disabled)
+                + " warn at: " + str(warn) + "(!)")
+    elif float(hosts_disabled) >= float(crit) and not float(crit) == -1:
+        ok_code = set_ok_code(ok_code, 2)
+        output.append("Disabled: " + str(hosts_disabled)
+                + " crit at: " + str(crit) + "(!!)")
+    else:
+        output.append("Disabled: " + str(hosts_disabled))
+
+    perfdata.append(('hosts_disabled', int(hosts_disabled), warn, crit))
+
+    # Hosts in progress
+    warn = check_threshold(params.get('hosts_progress')[0])
+    crit = check_threshold(params.get('hosts_progress')[1])
+    output.append("In progress: " + str(hosts_progress))
+    perfdata.append(('hosts_progress', int(hosts_progress), warn, crit))
 
     # Total Backups
-    output.append("Backups total: " + str(total_backup_count))
-    perfdata.append(('total_backup_count', int(total_backup_count), None, None))
-
-    # Backup in Progress
-    warn, crit = params.get('total_progress_count')
-    output.append("Backups in progress: " + str(total_progress_count))
-    perfdata.append(('total_progress_count', int(total_progress_count), warn, crit))
+    output.append("Backups: " + str(bkp_count))
+    perfdata.append(('bkp_count', int(bkp_count), None, None))
 
     # Backup in partial state
-    warn, crit = params.get('total_partial_count')
-    output.append("Backups partial: " + str(total_partial_count))
-    perfdata.append(('total_partial_count', int(total_partial_count), warn, crit))
+    warn = check_threshold(params.get('bkp_partial')[0])
+    crit = check_threshold(params.get('bkp_partial')[1])
+    output.append("Backups partial: " + str(bkp_partial))
+    perfdata.append(('bkp_partial', int(bkp_partial), warn, crit))
 
     # Backups with errors
-    warn, crit = params.get('total_error_count')
-    output.append("Backups with errors: " + str(total_error_count))
-    perfdata.append(('total_error_count', int(total_error_count), warn, crit))
+    warn = check_threshold(params.get('bkp_errors')[0])
+    crit = check_threshold(params.get('bkp_errors')[1])
+    output.append("Backups errors: " + str(bkp_errors))
+    perfdata.append(('bkp_errors', int(bkp_errors), warn, crit))
 
     return ok_code, ', '.join(output), perfdata
 
